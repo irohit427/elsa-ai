@@ -18,11 +18,13 @@ import { amountOptions, imageformSchema, resolutionOptions } from '@/constants';
 import { Download, ImageIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardFooter } from '@/components/ui/card';
+import { usePremiumModal } from '@/hooks/usePremiumModal';
 
 
 const ImageGenerator = () => {
   const router = useRouter();
   const [photos, setPhotos] = useState<string[]>([]);
+  const premiumModal = usePremiumModal();
   
   const form = useForm<z.infer<typeof imageformSchema>>({
     resolver: zodResolver(imageformSchema),
@@ -44,8 +46,13 @@ const ImageGenerator = () => {
       const urls = response.data.map((image: { url: string }) => image.url);
 
       setPhotos(urls);
+      form.reset();
     } catch (error: any) {
-      console.log(error);
+      if (error?.response?.status === 403) {
+        premiumModal.onOpen();
+      } else {
+        toast.error("Something went wrong.");
+      }
     } finally {
       router.refresh();
     }

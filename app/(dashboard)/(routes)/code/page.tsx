@@ -20,10 +20,12 @@ import * as z from 'zod';
 import ReactMarkdown from 'react-markdown'
 import axios from "axios";
 import toast from "react-hot-toast";
+import { usePremiumModal } from "@/hooks/usePremiumModal";
 
 const CodePage = () => {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
+  const premiumModal = usePremiumModal();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,7 +46,11 @@ const CodePage = () => {
       
       form.reset();
     } catch (error: any) {
+      if (error?.response?.status === 403) {
+        premiumModal.onOpen();
+      } else {
         toast.error("Something went wrong.");
+      }
     } finally {
       router.refresh();
     }

@@ -1,6 +1,8 @@
 import { Code, ImageIcon, MessageSquare, Music, VideoIcon } from "lucide-react";
 import * as z from 'zod';
 
+export const MAX_FREE_COUNTS = 10;
+
 export const tools = [
   {
     label: 'Conversation',

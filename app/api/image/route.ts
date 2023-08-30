@@ -1,3 +1,5 @@
+import { MAX_FREE_COUNTS } from "@/constants";
+import { getApiLimitCount, incrementApiLimit } from "@/lib/apiLimit";
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
@@ -13,6 +15,11 @@ export async function POST(
     const { userId } = auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const apiLimitCount = await getApiLimitCount();
+    if (apiLimitCount === MAX_FREE_COUNTS) {
+      return new NextResponse("Free trial has expired. Please upgrade to pro.", { status: 403 });
     }
 
     const body = await req.json();
@@ -35,7 +42,7 @@ export async function POST(
       n: parseInt(amount, 10),
       size: resolution,
     });
-    
+    await incrementApiLimit();
     return NextResponse.json(response.data);
   } catch (err) {
     console.log('[IMAGE_ERROR]', err);

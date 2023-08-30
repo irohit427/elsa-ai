@@ -16,9 +16,13 @@ import toast from 'react-hot-toast';
 import { UserAvatar } from '@/components/userAvatar';
 import { BotAvatar } from '@/components/botAvatar';
 import { cn } from '@/lib/utils';
+import { usePremiumModal } from '@/hooks/usePremiumModal';
+import { useRouter } from 'next/navigation';
 
 const ConversationPage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
+  const premiumModal = usePremiumModal();
+  const router = useRouter();
   
   const formSchema = z.object({
     prompt: z.string().min(1, {
@@ -44,8 +48,14 @@ const ConversationPage = () => {
       setMessages((current) => [...current, userMessage, response.data]);
       
       form.reset();
-    } catch (err) {
-      toast.error("Something went wrong.");
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        premiumModal.onOpen();
+      } else {
+        toast.error("Something went wrong.");
+      }
+    } finally {
+      router.refresh();
     }
   }
   

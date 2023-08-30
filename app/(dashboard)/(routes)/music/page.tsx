@@ -15,10 +15,12 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Loader } from "@/components/loader";
 import { Empty } from "@/components/ui/empty";
 import { musicformSchema } from "@/constants";
+import { usePremiumModal } from "@/hooks/usePremiumModal";
 
 const MusicPage = () => {
   const router = useRouter();
   const [music, setMusic] = useState<string>();
+  const premiumModal = usePremiumModal();
   
   const form = useForm<z.infer<typeof musicformSchema>>({
     resolver: zodResolver(musicformSchema),
@@ -38,7 +40,11 @@ const MusicPage = () => {
       setMusic(response.data.audio);
       form.reset();
     } catch (error: any) {
-      toast.error("Something went wrong.");
+      if (error?.response?.status === 403) {
+        premiumModal.onOpen();
+      } else {
+        toast.error("Something went wrong.");
+      }
     } finally {
       router.refresh();
     }

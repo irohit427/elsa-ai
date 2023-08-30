@@ -16,11 +16,13 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Loader } from "@/components/loader";
 import { Empty } from "@/components/ui/empty";
 import { videoformSchema } from "@/constants";
+import { usePremiumModal } from "@/hooks/usePremiumModal";
 
 
 const VideoPage = () => {
   const router = useRouter();
   const [video, setVideo] = useState<string>();
+  const premiumModal = usePremiumModal();
 
   const form = useForm<z.infer<typeof videoformSchema>>({
     resolver: zodResolver(videoformSchema),
@@ -40,7 +42,11 @@ const VideoPage = () => {
       setVideo(response.data[0]);
       form.reset();
     } catch (error: any) {
+      if (error?.response?.status === 403) {
+        premiumModal.onOpen();
+      } else {
         toast.error("Something went wrong.");
+      }
     } finally {
       router.refresh();
     }

@@ -1,10 +1,14 @@
 import Replicate from "replicate";
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
+import { getApiLimitCount, incrementApiLimit } from "@/lib/apiLimit";
+import { MAX_FREE_COUNTS } from "@/constants";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 });
+
+const model: `${string}/${string}:${string}` = process.env.VIDEO_GENERATION_MODEL as `${string}/${string}:${string}`;
 
 export async function POST(
   req: Request
@@ -14,6 +18,13 @@ export async function POST(
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+    
+    const apiLimitCount = await getApiLimitCount();
+
+    if (apiLimitCount === MAX_FREE_COUNTS) {
+      return new NextResponse("Free trial has expired. Please upgrade to pro.", { status: 403 });
+    }
+
     const body = await req.json();
     const { prompt  } = body;
 
@@ -21,14 +32,16 @@ export async function POST(
       return new NextResponse("Prompt is required", { status: 400 });
     }
 
-    const response = await replicate.run(
-      "anotherjesse/zeroscope-v2-xl:71996d331e8ede8ef7bd76eba9fae076d31792e4ddf4ad057779b443d6aea62f",
+    const response = await replicate.run(model,
       {
         input: {
           prompt,
         }
       }
     );
+
+    await incrementApiLimit();
+
     return NextResponse.json(response);
   } catch (error) {
     console.log('[VIDEO_ERROR]', error);
