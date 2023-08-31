@@ -1,9 +1,9 @@
 import { auth, currentUser } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 
-import prismadb from "@/lib/prismadb";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe } from "@/lib/stripe";
+import prismadb from "@/lib/prismadb";
 const settingsUrl = absoluteUrl("/settings");
 
 export async function GET() {
