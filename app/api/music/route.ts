@@ -1,5 +1,6 @@
 import { MAX_FREE_COUNTS } from "@/constants";
 import { getApiLimitCount, incrementApiLimit } from "@/lib/apiLimit";
+import { checkSubscription } from "@/lib/subscription";
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import Replicate from "replicate";
@@ -18,7 +19,9 @@ export async function POST(
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+    
     const apiLimitCount = await getApiLimitCount();
+    const isPro = await checkSubscription();
 
     if (apiLimitCount === MAX_FREE_COUNTS) {
       return new NextResponse("Free trial has expired. Please upgrade to pro.", { status: 403 });
@@ -40,7 +43,9 @@ export async function POST(
       }
     );
     
-    await incrementApiLimit();
+    if (!isPro) {
+      await incrementApiLimit();
+    }
 
     return NextResponse.json(response);
   } catch (err) {

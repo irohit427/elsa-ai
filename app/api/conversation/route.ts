@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { incrementApiLimit, getApiLimitCount } from "@/lib/apiLimit";
 import { MAX_FREE_COUNTS } from "@/constants";
+import { checkSubscription } from "@/lib/subscription";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,6 +18,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
     const apiLimitCount = await getApiLimitCount();
+    const isPro = await checkSubscription();
     
     if (apiLimitCount === MAX_FREE_COUNTS) {
       return new NextResponse("Free trial has expired. Please upgrade to pro.", { status: 403 });
@@ -32,8 +34,10 @@ export async function POST(
       model: 'gpt-4'
     });
 
-    await incrementApiLimit();
-    
+    if (!isPro) {
+      await incrementApiLimit();
+    }
+
     return NextResponse.json(response.choices[0].message);
   } catch (err) {
     console.log('[CONVERSATION_ERROR]', err);
