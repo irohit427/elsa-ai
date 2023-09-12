@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs";
-import prismadb from "./prismadb";
+import { PrismaClient } from "@prisma/client";
+
+const prismadb = new PrismaClient();
 
 
 export const incrementApiLimit = async () => {

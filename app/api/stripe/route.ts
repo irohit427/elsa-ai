@@ -1,10 +1,11 @@
 import { auth, currentUser } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 
-import prismadb from "@/lib/prismadb";
+import { PrismaClient } from "@prisma/client";
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 
+const prismadb = new PrismaClient();
 const settingsUrl = absoluteUrl("/settings");
 
 export async function GET() {
