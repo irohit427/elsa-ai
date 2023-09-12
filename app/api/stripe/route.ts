@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe } from "@/lib/stripe";
 import prismadb from "@/lib/prismadb";
+
 const settingsUrl = absoluteUrl("/settings");
 
 export async function GET() {
